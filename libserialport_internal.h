@@ -36,7 +36,7 @@
 #define _POSIX_C_SOURCE 199309L
 #endif
 
-#ifdef LIBSERIALPORT_ATBUILD
+#if defined(LIBSERIALPORT_ATBUILD) || defined(LIBSERIALPORT_CMAKEBUILD)
 /* If building with autoconf, include the generated config.h. */
 #include <config.h>
 #endif
