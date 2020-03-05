@@ -114,6 +114,11 @@ else()
     set(SP_PRIV " ")
 endif()
 
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|Darwin|Windows|FreeBSD")
+    set(NO_ENUMERATION 1)
+    set(NO_PORT_METADATA 1)
+endif()
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
