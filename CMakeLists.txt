@@ -36,7 +36,12 @@ if(NOT CMAKE_CONFIGURATION_TYPE AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-project(${PROJECT_NAME} ${PROJECT_LANGUAGE})
+# Setup project
+project(${PROJECT_NAME} LANGUAGES ${PROJECT_LANGUAGE})
+
+# Add definitions
+add_definitions(-DLIBSERIALPORT_ATBUILD)
+add_definitions(-DLIBSERIALPORT_CMAKE_SIMULATION)
 
 # Export configuration files
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
