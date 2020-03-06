@@ -290,7 +290,7 @@ extern "C" {
 #endif
 #else
 /* Some other compiler in use */
-#if !defined(LIBSERIALPORT_ATBUILD) && !defined(LIBSERIALPORT_CMAKEBUILD)
+#ifndef LIBSERIALPORT_ATBUILD
 /* Not building the library itself - don't need any special prefixes. */
 #define SP_API
 #endif
