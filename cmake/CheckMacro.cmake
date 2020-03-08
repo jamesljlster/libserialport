@@ -50,7 +50,7 @@ macro(SYS_LARGEFILE _FILE_OFFSET_BITS _LARGE_FILES)
     CMAKE_PUSH_CHECK_STATE(RESET)
 
     # Performing test
-    if(NOT DEFINED ${_FILE_OFFSET_BITS} AND NOT DEFINED ${_LARGE_FILES})
+    if((NOT ${_FILE_OFFSET_BITS}) AND (NOT ${_LARGE_FILES}))
 
         # Test macro for large file support
         macro(TRY_LFS_COMPILE RESULT)
@@ -69,7 +69,7 @@ macro(SYS_LARGEFILE _FILE_OFFSET_BITS _LARGE_FILES)
         TRY_LFS_COMPILE(LFS_NATIVE)
 
         # Test LFS support with setting _FILE_OFFSET_BITS to 64
-        if(NOT ${LFS_NATIVE})
+        if(NOT LFS_NATIVE)
             set(CMAKE_REQUIRED_DEFINITIONS "-D_FILE_OFFSET_BITS=64")
             TRY_LFS_COMPILE(LFS_OFFT_64)
             if(${LFS_OFFT_64})
@@ -78,7 +78,7 @@ macro(SYS_LARGEFILE _FILE_OFFSET_BITS _LARGE_FILES)
         endif()
 
         # Test LFS support with setting _LARGE_FILES to 1
-        if(NOT ${LFS_NATIVE} AND NOT ${LFS_OFFT_64})
+        if((NOT LFS_NATIVE) AND (NOT LFS_OFFT_64))
             set(CMAKE_REQUIRED_DEFINITIONS "-D_LARGE_FILES=64")
             TRY_LFS_COMPILE(LFS_LARGE_FILES)
             if(${LFS_LARGE_FILES})
