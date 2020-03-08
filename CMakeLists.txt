@@ -6,10 +6,11 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     You should create a separate directory for build files.")
 endif()
 
-# Set variables
+# Set project informations
 set(PROJECT_NAME serialport)
 set(PROJECT_LANGUAGE C)
 
+# Set package version and informations
 set(SP_PACKAGE_VERSION_MAJOR 0)
 set(SP_PACKAGE_VERSION_MINOR 1)
 set(SP_PACKAGE_VERSION_MICRO 1)
@@ -43,14 +44,16 @@ project(${PROJECT_NAME} LANGUAGES ${PROJECT_LANGUAGE})
 add_definitions(-DLIBSERIALPORT_ATBUILD)
 add_definitions(-DLIBSERIALPORT_CMAKE_SIMULATION)
 
-# Export configuration files
+# Let CMake can find custom modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+# Include check modules
 include(CheckIncludeFile)
 include(CheckCSourceCompiles)
 include(CheckFunctionExists)
 include(CheckMacro)
 
+# Checking: include files
 CHECK_INCLUDE_FILE("dlfcn.h" HAVE_DLFCN_H)
 CHECK_INCLUDE_FILE("inttypes.h" HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("memory.h" HAVE_MEMORY_H)
@@ -62,6 +65,7 @@ CHECK_INCLUDE_FILE("sys/stat.h" HAVE_SYS_STAT_H)
 CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE("unistd.h" HAVE_UNISTD_H)
 
+# Checking: data types
 CHECK_TYPE("struct termios2" "<linux/termios.h>" HAVE_STRUCT_TERMIOS2)
 CHECK_TYPE("struct termiox" "<linux/termios.h>" HAVE_STRUCT_TERMIOX)
 CHECK_TYPE("struct serial_struct" "<linux/serial.h>" HAVE_STRUCT_SERIAL_STRUCT)
@@ -71,15 +75,19 @@ CHECK_MEMBER("struct termios2" "c_ospeed" "<linux/termios.h>" HAVE_STRUCT_TERMIO
 CHECK_MEMBER("struct termios" "c_ispeed" "<linux/termios.h>" HAVE_STRUCT_TERMIOS_C_ISPEED)
 CHECK_MEMBER("struct termios" "c_ospeed" "<linux/termios.h>" HAVE_STRUCT_TERMIOS_C_OSPEED)
 
+TYPE_SIZE_T(SIZE_T)
+
+# Checking: declaration
 CHECK_DECL("BOTHER" "<linux/termios.h>" HAVE_DECL_BOTHER)
 
+# Checking: functions
 CHECK_FUNCTION_EXISTS("clock_gettime" HAVE_CLOCK_GETTIME)
 CHECK_FUNCTION_EXISTS("realpath" HAVE_REALPATH)
 
-TYPE_SIZE_T(SIZE_T)
-
+# Checking: headers
 HEADER_STDC(STDC_HEADERS)
 
+# Configuration: SP_CV_VISIBILITY_CONTROL
 set(SP_SAVED_CFLAGS ${CMAKE_C_FLAGS})
 if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -WX")
@@ -103,6 +111,7 @@ else()
 endif()
 set(CMAKE_C_FLAGS ${SP_SAVED_CFLAGS})
 
+# Configuration: SP_API, SP_PRIV
 if(SP_CV_VISIBILITY_CONTROL MATCHES "attribute")
     set(SP_API "__attribute__((visibility(\"default\")))")
     set(SP_PRIV "__attribute__((visibility(\"hidden\")))")
@@ -119,18 +128,21 @@ else()
     set(SP_PRIV " ")
 endif()
 
+# Configuration: NO_ENUMERATION, NO_PORT_METADATA
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|Darwin|Windows|FreeBSD")
     set(NO_ENUMERATION 1)
     set(NO_PORT_METADATA 1)
 endif()
 
+# Checking: Large file support
 SYS_LARGEFILE(_FILE_OFFSET_BITS _LARGE_FILES)
 
+# Generate config.h from config.h.cmake with checking results and configurations
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-# Compile library
+# Set project sources list
 set(SP_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/serialport.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/timing.c"
@@ -156,6 +168,7 @@ else()
     message(FATAL_ERROR "Unexpected host operating system")
 endif()
 
+# Compile library
 add_library(${PROJECT_NAME} ${SP_SRCS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
     OUTPUT_NAME ${PROJECT_NAME})
@@ -166,6 +179,7 @@ if(${BUILD_SHARED_LIBS})
     endif()
 endif()
 
+# Deploy library
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"

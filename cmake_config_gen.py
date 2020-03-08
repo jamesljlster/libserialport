@@ -1,6 +1,6 @@
 from os.path import exists
 
-# Let definitions exists in config.h even its value is set to zero
+# Let definitions exists in config.h even their value is set to zero
 persistent = ['PACKAGE_BUGREPORT',
               'PACKAGE_NAME',
               'PACKAGE_STRING',
