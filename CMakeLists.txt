@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 # Disable in-source builds to prevent source tree corruption.
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -14,6 +14,8 @@ set(PROJECT_LANGUAGE C)
 set(SP_PACKAGE_VERSION_MAJOR 0)
 set(SP_PACKAGE_VERSION_MINOR 1)
 set(SP_PACKAGE_VERSION_MICRO 1)
+set(SP_PACKAGE_VERSION
+    ${SP_PACKAGE_VERSION_MAJOR}.${SP_PACKAGE_VERSION_MINOR}.${SP_PACKAGE_VERSION_MICRO})
 set(SP_PACKAGE_VERSION_STRING
     "\"${SP_PACKAGE_VERSION_MAJOR}.${SP_PACKAGE_VERSION_MINOR}.${SP_PACKAGE_VERSION_MICRO}\"")
 
@@ -33,12 +35,15 @@ set(PACKAGE_STRING "\"libserialport ${SP_PACKAGE_VERSION_MAJOR}.${SP_PACKAGE_VER
 # Environment variables
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
 
+# Set default build type to release
 if(NOT CMAKE_CONFIGURATION_TYPE AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
 # Setup project
-project(${PROJECT_NAME} LANGUAGES ${PROJECT_LANGUAGE})
+project(${PROJECT_NAME}
+    LANGUAGES ${PROJECT_LANGUAGE}
+    VERSION ${SP_PACKAGE_VERSION_MAJOR}.${SP_PACKAGE_VERSION_MINOR}.${SP_PACKAGE_VERSION_MICRO})
 
 # Add definitions
 add_definitions(-DLIBSERIALPORT_ATBUILD)
@@ -148,7 +153,7 @@ set(SP_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/timing.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/libserialport_internal.h")
 
-set(SP_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/libserialport.h")
+set(SP_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/libserialport.h")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(SP_SRCS ${SP_SRCS}
@@ -171,7 +176,10 @@ endif()
 # Compile library
 add_library(${PROJECT_NAME} ${SP_SRCS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
-    OUTPUT_NAME ${PROJECT_NAME})
+    OUTPUT_NAME ${PROJECT_NAME}
+    VERSION "${${PROJECT_NAME}_VERSION}"
+    SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}"
+    )
 
 if(${BUILD_SHARED_LIBS})
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -179,11 +187,20 @@ if(${BUILD_SHARED_LIBS})
     endif()
 endif()
 
-# Deploy library
-install(TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+# Configure package install prefix
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(exec_prefix ${prefix})
+set(libdir ${prefix}/lib)
+set(includedir ${prefix}/include)
 
-install(FILES ${SP_HEADERS}
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
+if (UNIX)
+    # Configure libserialport.pc
+    set(PC_FILE ${CMAKE_CURRENT_BINARY_DIR}/libserialport.pc)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libserialport.pc.in ${PC_FILE} @ONLY)
+    install(FILES ${PC_FILE} DESTINATION ${libdir}/pkgconfig)
+endif()
+
+# Deploy library
+install(TARGETS ${PROJECT_NAME} DESTINATION ${libdir})
+install(FILES ${SP_HEADERS} DESTINATION ${includedir})
+
