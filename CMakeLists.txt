@@ -204,3 +204,5 @@ endif()
 install(TARGETS ${PROJECT_NAME} DESTINATION ${libdir})
 install(FILES ${SP_HEADERS} DESTINATION ${includedir})
 
+# Configure uninstall target
+add_custom_target(uninstall ${CMAKE_COMMAND} -P ${CMAKE_MODULE_PATH}/CMakeUninstall.cmake)
