@@ -46,8 +46,12 @@ project(${PROJECT_NAME}
     VERSION ${SP_PACKAGE_VERSION_MAJOR}.${SP_PACKAGE_VERSION_MINOR}.${SP_PACKAGE_VERSION_MICRO})
 
 # Add definitions
-add_definitions(-DLIBSERIALPORT_ATBUILD)
 add_definitions(-DLIBSERIALPORT_CMAKE_SIMULATION)
+if(MSVC)
+    add_definitions(-DLIBSERIALPORT_MSBUILD)
+else()
+    add_definitions(-DLIBSERIALPORT_ATBUILD)
+endif()
 
 # Let CMake can find custom modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
