@@ -1,0 +1,17 @@
+#
+# Config file for libserialport package
+#
+#   Definitions:
+#     LIBSERIALPORT_INCLUDE_DIRS - location of header files
+#     LIBSERIALPORT_LIBRARIES    - location of library files
+#
+
+# Compute path
+get_filename_component(LIBSERIALPORT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+# Include exported target
+include("${LIBSERIALPORT_CMAKE_DIR}/libserialport-targets.cmake")
+
+# Set variables
+set(LIBSERIALPORT_CMAKE_DIR "@SP_INCLUDE_DIRS@")
+set(LIBSERIALPORT_LIBRARIES @PROJECT_NAME@)

@@ -7,7 +7,7 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif()
 
 # Set project informations
-set(PROJECT_NAME serialport)
+set(PROJECT_NAME libserialport)
 set(PROJECT_LANGUAGE C)
 
 # Set package version and informations
@@ -180,6 +180,7 @@ endif()
 # Compile library
 add_library(${PROJECT_NAME} ${SP_SRCS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
+    PREFIX ""
     OUTPUT_NAME ${PROJECT_NAME}
     VERSION "${${PROJECT_NAME}_VERSION}"
     SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}"
@@ -194,19 +195,34 @@ endif()
 # Configure package install prefix
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${prefix})
+set(bindir ${prefix}/bin)
 set(libdir ${prefix}/lib)
 set(includedir ${prefix}/include)
 
+set(pcdir ${libdir}/pkgconfig)
+set(exportdir ${libdir}/cmake)
+
+# Configure libserialport.pc
 if (UNIX)
-    # Configure libserialport.pc
     set(PC_FILE ${CMAKE_CURRENT_BINARY_DIR}/libserialport.pc)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libserialport.pc.in ${PC_FILE} @ONLY)
-    install(FILES ${PC_FILE} DESTINATION ${libdir}/pkgconfig)
+    install(FILES ${PC_FILE} DESTINATION ${pcdir})
 endif()
 
+# Configure cmake config file
+file(RELATIVE_PATH REL_INCLUDE_DIR ${exportdir} ${includedir})
+set(SP_INCLUDE_DIRS "\${LIBSERIALPORT_CMAKE_DIR}/${REL_INCLUDE_DIR}")
+
+set(CMAKE_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/libserialport-config.cmake)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libserialport-config.cmake.in
+    ${CMAKE_CONFIG_FILE} @ONLY)
+install(FILES ${CMAKE_CONFIG_FILE} DESTINATION ${exportdir})
+
 # Deploy library
-install(TARGETS ${PROJECT_NAME} DESTINATION ${libdir})
+install(TARGETS ${PROJECT_NAME} EXPORT libserialport-targets DESTINATION ${libdir})
 install(FILES ${SP_HEADERS} DESTINATION ${includedir})
+
+install(EXPORT libserialport-targets DESTINATION ${exportdir})
 
 # Configure uninstall target
 add_custom_target(uninstall ${CMAKE_COMMAND} -P ${CMAKE_MODULE_PATH}/CMakeUninstall.cmake)
