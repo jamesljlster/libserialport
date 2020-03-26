@@ -32,8 +32,12 @@ set(PACKAGE_TARNAME "\"libserialport\"")
 set(PACKAGE_URL "\"http://sigrok.org/wiki/Libserialport\"")
 set(PACKAGE_STRING "\"libserialport ${SP_PACKAGE_VERSION_MAJOR}.${SP_PACKAGE_VERSION_MINOR}.${SP_PACKAGE_VERSION_MICRO}\"")
 
-# Set default build type to release
-if(NOT CMAKE_CONFIGURATION_TYPE AND NOT CMAKE_BUILD_TYPE)
+# Add build types options and set default to release
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo;MinSizeRel" CACHE STRING "Build configure" FORCE)
+if(DEFINED CMAKE_BUILD_TYPE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES})
+endif()
+if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
