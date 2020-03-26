@@ -32,9 +32,6 @@ set(PACKAGE_TARNAME "\"libserialport\"")
 set(PACKAGE_URL "\"http://sigrok.org/wiki/Libserialport\"")
 set(PACKAGE_STRING "\"libserialport ${SP_PACKAGE_VERSION_MAJOR}.${SP_PACKAGE_VERSION_MINOR}.${SP_PACKAGE_VERSION_MICRO}\"")
 
-# Environment variables
-option(BUILD_SHARED_LIBS "Build shared library" OFF)
-
 # Set default build type to release
 if(NOT CMAKE_CONFIGURATION_TYPE AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -177,21 +174,6 @@ else()
     message(FATAL_ERROR "Unexpected host operating system")
 endif()
 
-# Compile library
-add_library(${PROJECT_NAME} ${SP_SRCS})
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    PREFIX ""
-    OUTPUT_NAME ${PROJECT_NAME}
-    VERSION "${${PROJECT_NAME}_VERSION}"
-    SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}"
-    )
-
-if(${BUILD_SHARED_LIBS})
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        target_link_libraries(${PROJECT_NAME} setupapi)
-    endif()
-endif()
-
 # Configure package install prefix
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${prefix})
@@ -209,6 +191,46 @@ if (UNIX)
     install(FILES ${PC_FILE} DESTINATION ${pcdir})
 endif()
 
+# Compile static library
+set(SP_STATIC_LIB ${PROJECT_NAME}-static)
+add_library(${SP_STATIC_LIB} STATIC ${SP_SRCS})
+set_target_properties(${SP_STATIC_LIB} PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME ${PROJECT_NAME}
+    VERSION "${${PROJECT_NAME}_VERSION}"
+    SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}"
+    )
+
+# Deploy static library
+set(SP_STATIC_LIB_TARGET ${SP_STATIC_LIB}-targets)
+install(TARGETS ${SP_STATIC_LIB} EXPORT ${SP_STATIC_LIB_TARGET} DESTINATION ${libdir})
+install(EXPORT ${SP_STATIC_LIB_TARGET} DESTINATION ${exportdir})
+
+# Compile shared library
+set(SP_SHARED_LIB ${PROJECT_NAME}-shared)
+add_library(${SP_SHARED_LIB} SHARED ${SP_SRCS})
+set_target_properties(${SP_SHARED_LIB} PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME ${PROJECT_NAME}
+    VERSION "${${PROJECT_NAME}_VERSION}"
+    SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}"
+    )
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    target_link_libraries(${SP_SHARED_LIB} setupapi)
+endif()
+
+# Deploy shared library
+set(SP_SHARED_LIB_TARGET ${SP_SHARED_LIB}-targets)
+install(TARGETS ${SP_SHARED_LIB} EXPORT ${SP_SHARED_LIB_TARGET}
+    RUNTIME DESTINATION ${bindir}
+    LIBRARY DESTINATION ${libdir}
+    )
+install(EXPORT ${SP_SHARED_LIB_TARGET} DESTINATION ${exportdir})
+
+# Deploy public headers
+install(FILES ${SP_HEADERS} DESTINATION ${includedir})
+
 # Configure cmake config file
 file(RELATIVE_PATH REL_INCLUDE_DIR ${exportdir} ${includedir})
 set(SP_INCLUDE_DIRS "\${LIBSERIALPORT_CMAKE_DIR}/${REL_INCLUDE_DIR}")
@@ -217,12 +239,6 @@ set(CMAKE_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/libserialport-config.cmake)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libserialport-config.cmake.in
     ${CMAKE_CONFIG_FILE} @ONLY)
 install(FILES ${CMAKE_CONFIG_FILE} DESTINATION ${exportdir})
-
-# Deploy library
-install(TARGETS ${PROJECT_NAME} EXPORT libserialport-targets DESTINATION ${libdir})
-install(FILES ${SP_HEADERS} DESTINATION ${includedir})
-
-install(EXPORT libserialport-targets DESTINATION ${exportdir})
 
 # Configure uninstall target
 add_custom_target(uninstall ${CMAKE_COMMAND} -P ${CMAKE_MODULE_PATH}/CMakeUninstall.cmake)

@@ -6,12 +6,20 @@
 #     LIBSERIALPORT_LIBRARIES    - location of library files
 #
 
+# Option for using static/shared library
+option(LIBSERIALPORT_STATIC "Using libserialport static library" ON)
+
 # Compute path
 get_filename_component(LIBSERIALPORT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-# Include exported target
-include("${LIBSERIALPORT_CMAKE_DIR}/libserialport-targets.cmake")
+# Import static/shared targets and set linking libraries
+if(${LIBSERIALPORT_STATIC})
+    include("${LIBSERIALPORT_CMAKE_DIR}/@SP_STATIC_LIB_TARGET@.cmake")
+    set(LIBSERIALPORT_LIBRARIES @SP_STATIC_LIB@)
+else()
+    include("${LIBSERIALPORT_CMAKE_DIR}/@SP_SHARED_LIB_TARGET@.cmake")
+    set(LIBSERIALPORT_LIBRARIES @SP_SHARED_LIB@)
+endif()
 
-# Set variables
+# Set include directories
 set(LIBSERIALPORT_INCLUDE_DIRS "@SP_INCLUDE_DIRS@")
-set(LIBSERIALPORT_LIBRARIES @PROJECT_NAME@)
